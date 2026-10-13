@@ -1,0 +1,34 @@
+# ── Web Framework ──────────────────────────────────────────────────────────────
+flask
+waitress          # production server on Windows (python app.py)
+gunicorn; sys_platform != "win32"   # production server on Linux hosts (Render)
+
+# ── Browser Automation ─────────────────────────────────────────────────────────
+playwright
+playwright-stealth
+
+# ── HTTP + HTML Parsing ────────────────────────────────────────────────────────
+requests
+beautifulsoup4
+lxml
+feedparser
+
+# ── Search Engine (try ddgs first, fall back to duckduckgo-search) ─────────────
+ddgs
+duckduckgo-search>=6.0.0
+
+# ── Data Handling ──────────────────────────────────────────────────────────────
+pandas
+dateparser
+
+# ── Anti-Detection & Reliability ───────────────────────────────────────────────
+fake-useragent
+tenacity
+
+# ── Logging ────────────────────────────────────────────────────────────────────
+loguru
+# ── Scheduler (scheduler.py) ───────────────────────────────────────────────────
+schedule
+
+# ── Tests ──────────────────────────────────────────────────────────────────────
+pytest
