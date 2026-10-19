@@ -39,7 +39,7 @@ def run_scraper_job():
 
 def main():
     print("==================================================")
-    print("🤖 AI/ML Internship Scraper - Scheduler Process   ")
+    print("🛡️ InReal Opportunity Discovery - Scheduler Process")
     print("==================================================")
     print("This process will stay alive and run the scraper at 8:00 AM daily.")
     print("Press Ctrl+C to stop the scheduler.")

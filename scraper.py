@@ -431,7 +431,7 @@ def run_scrapers(dry_run=False, config=None, specific_source=None):
     return total_added
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Automated AI/ML Internship Scraper")
+    parser = argparse.ArgumentParser(description="InReal: AI-Powered Opportunity Discovery & Fraud Detection Pipeline")
     parser.add_argument("--dry-run", action="store_true", help="Run scrapers without saving to CSV")
     parser.add_argument("--field", type=str, default="ai_ml",
                         help="Field to search for, e.g. medical, finance, software (see fields.py)")

@@ -63,16 +63,3 @@ test_output/
 # Built from moderation/scam_patterns.json with your Gemini key (python -m moderation.build_index)
 moderation/pattern_index.json
 
-moderation/
-n8n/
-N8N_SETUP.md
-tests/test_moderation.py
-tests/test_recheck.py
-tests/js_runner.js
-
-moderation/
-n8n/
-N8N_SETUP.md
-tests/test_moderation.py
-tests/test_recheck.py
-tests/js_runner.js

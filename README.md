@@ -1,335 +1,232 @@
-# 🤖 AI/ML Internship Radar
-### *Your personal robot that hunts down AI internships while you sleep.*
+# InReal: AI-Powered Opportunity Discovery & Fraud Detection Platform
 
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://python.org)
 [![Flask](https://img.shields.io/badge/flask-3.x-green.svg)](https://flask.palletsprojects.com)
 [![Playwright](https://img.shields.io/badge/playwright-stealth-blueviolet.svg)](https://playwright.dev)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> **InReal** by Team Chiranjeevi (CodeX 3.0, PIET Panipat, Oct 2026): we took the open-source *AI/ML Internship Radar* (MIT licence), updated its scrapers to the portals' current page structure, and added a genuine-only check that removes listings asking for money, task-for-money schemes and mass "internship" programmes. The first commit in this repo is the original code, unchanged; every later commit is our work.
-
----
-
-## � The Problem
-
-You're a CS/AI student trying to land an internship for summer 2026.
-
-So you open 17 tabs — LinkedIn, Internshala, Naukri, Unstop, some obscure university portal — spend 3 hours copy-pasting, and realize half the listings are from 2024.
-
-**There's a better way.**
+**InReal** is an intelligent opportunity discovery and fraud-detection engine engineered for students, graduates, and researchers. It aggregates internships and research residencies across 60+ global platforms, verifies listing authenticity through a multi-stage evidence fusion pipeline, and presents clean, verified opportunities on an interactive, real-time dashboard.
 
 ---
 
-## � What This Does
+## 🚀 Key Capabilities
 
-This project is a **fully automated web scraping system** that:
-
-- 🕷️ **Scrapes 60+ platforms simultaneously** — India AND worldwide
-- 🧠 **Filters by actual AI/ML relevance** — not just "software" jobs
-- 🚫 **Auto-rejects closed, expired, and past-year listings** — no 2024 garbage slipping through
-- 📊 **Scores every listing from 0–100** based on your profile
-- �️ **Streams everything to a beautiful dashboard** at `http://localhost:5000`
-- ⏰ **Runs daily at 8 AM automatically** (set it, forget it)
-
-You click one button. The robot does the rest.
-
----
-
-## � The Dashboard
-
-It looks like something Bloomberg would build:
-
-- 🌍 **Region Tabs** — Everything / 🇮🇳 India / 🌐 Global / 📡 Remote — click to instantly switch
-- 🔥 **Match Score Badges** — Glowing green means high AI/ML relevance. Red means meh.
-- ⚡ **Live Log Terminal** — Watch the scraper work in real-time right inside the browser
-- 🗑️ **Clear Database Button** — Red trash icon wipes everything so you can start 100% fresh
-
-Cards are sorted and rendered using CSS Grid `order` properties — which means **zero flickering**, even with 300+ listings live-updating every 4 seconds. Butter smooth.
+- 🌐 **Multi-Platform Aggregation:** Scrapes and synchronizes listings across 60+ sources spanning India and international portals (Internshala, Unstop, Naukri, LinkedIn Jobs guest API, Shine, Foundit, Apna, AICTE Government portal, BigTech career endpoints, and dynamic university discovery dorks).
+- 🧭 **Multi-Disciplinary Coverage:** Beyond computing, InReal supports 12 career disciplines: AI/ML, Software Development, Data Analytics, Healthcare & Medicine, Pharma & Biotech, Core Engineering, Finance, Marketing, Design, Content & Media, HR & Operations, and Law.
+- 🛡️ **Autonomous Fraud & Scam Defense (`genuine.py`):**
+  - Flags or blocks listings with upfront registration fees, security deposits, training charges, or prepaid task-for-money schemes.
+  - Detects mass-hiring anomalies (e.g. 10,000+ "hired" from automated postings).
+  - Flags suspicious recruiter metrics (brand new employers with 0 hires, high post-to-hire skew, multi-town flood posting).
+- 🔎 **Multi-Stage Moderation Pipeline (`moderation/` & `n8n/`):**
+  - **Stage 0 (Signals):** Validates redirect chains, final domain legitimacy, HTTP status, and detects high-risk contact channels (UPI payment handles, free webmail domains, WhatsApp/Telegram recruiter redirection).
+  - **Stage 1 (Vector Search):** Semantic chunk comparison against a calibrated bank of scam patterns using normalized embeddings and contrastive honest-wording margin enforcement.
+  - **Stage 2 (Evidence-Verified LLM Judge & Fusion):** Generative reasoning that requires verbatim evidence extraction, discounts ungrounded claims, and combines multi-modal scores with automatic human-review escalation upon divergence.
+- 🔄 **Copy Collapsing & Contamination Propagation:** Automatically clusters duplicate flood postings, aggregates disparate location warnings, and propagates distrust tags across listings from known deceptive training sellers.
+- ⚡ **Production-Ready & Secure:**
+  - Thread-safe data persistence with Windows-compatible retry backoff.
+  - Tunnel-aware security layer enforcing read-only access for external visitors via Cloudflare tunnels while gating admin operations behind secure authentication.
+  - High-concurrency WSGI serving with Waitress (Windows) or Gunicorn (Linux).
 
 ---
 
-## ⚠️ But Wait — Some Sites Are Sneaky
+## 🏗️ Architecture Overview
 
-LinkedIn, Naukri, and Unstop have bot blockers. So the scraper:
+```mermaid
+flowchart TD
+    subgraph Ingestion ["1. Opportunity Ingestion Layer"]
+        A1[Playwright Stealth Scrapers] --> B[Scraper Orchestrator]
+        A2[Direct JSON & Guest APIs] --> B
+        A3[Dynamic Research Dorks] --> B
+        A4[AICTE Govt Portal] --> B
+    end
 
-1. Opens these browsers **visibly** (not headless) so you can see what's happening
-2. Shows you a glowing orange **"Action Required"** banner in the dashboard if a CAPTCHA appears
-3. Waits **45 seconds** for you to solve it (or it auto-skips and moves on)
-4. You click **Done** → banner disappears → scraper resumes silently
+    subgraph PreMod ["2. Deterministic Filtering & Genuineness"]
+        B --> C1[fields.py: Disciplinary Ontology Matcher]
+        C1 --> C2[filters.py: Eligibility & Keyword Gate]
+        C2 --> C3[genuine.py: Scam Rules & Telemetry Anomalies]
+        C3 --> C4[scraper.py: Copy Collapsing & Contamination Flagging]
+    end
 
-It's like pair-programming with a robot.
+    subgraph Storage ["3. Concurrency-Safe Data Layer"]
+        C4 --> D[output_handler.py: Thread-Locked CSV/JSON Store]
+    end
 
----
+    subgraph Moderation ["4. AI & Multi-Modal Moderation (n8n)"]
+        D <--> E1[Stage 0: signals.js & link_check.py]
+        E1 --> E2[Stage 1: vector_search.js + pattern_index.json]
+        E2 --> E3[Stage 2: judge_prompt.js + fuse.js]
+        E3 --> D
+    end
 
-## �️ Where It Scrapes (60+ Sources)
-
-### 🇮🇳 India
-| Platform | How | Notes |
-|----------|-----|-------|
-| **Internshala** | Playwright stealth | India's #1 internship platform |
-| **Unstop** | Playwright headless=False | Scans for "closed" tags — won't waste your time |
-| **Naukri.com** | Playwright headless=False | India's largest job board |
-| **LinkedIn Jobs** | Playwright headless=False | 100+ search configs across Indian cities |
-| **Shine / Foundit / Apna / CutShort** | Requests + BS4 | Four aggregators at once |
-| **DRDO, ISRO, Govt Labs** | Requests | Real government research portals |
-| **DuckDuckGo Dorks** | DDG API | Hidden `.ac.in` and `.res.in` gems |
-
-### 🌐 International
-| Platform | How | Coverage |
-|----------|-----|----------|
-| **LinkedIn Jobs** | Playwright | 15+ EU countries, US, Asia |
-| **Remotive + WeWorkRemotely** | RSS + Playwright | Best remote AI/ML listings |
-| **DuckDuckGo University Search** | DDG API | **54 search queries** — see list below |
-| **BigTech Careers** | Requests | Google, Meta, Microsoft, Apple, Amazon |
-| **Niche AI Boards** | Requests | ML-specific boards you've never heard of |
-
-### 🎓 University & Research Lab Discovery
-
-The university scraper fires **54 live DuckDuckGo searches** every run. No hardcoded links. It dynamically discovers current positions at:
-
-🇮🇳 `IIT, IISc, IIIT, TIFR, DRDO, ISRO`
-🇩🇪 `DAAD RISE, Max Planck, TU Munich, ETH Zurich, EPFL`
-🇬🇧 `Oxford, Cambridge, UCL, Imperial`
-🇺🇸 `MIT, Stanford, CMU, Berkeley, Cornell, NSF REU, DOE SULI`
-🌐 `OpenAI, DeepMind, Anthropic, Google DeepMind, Meta FAIR, NVIDIA`
-🇨🇦 `Mitacs, Mila, Vector Institute, UBC`
-🇸🇬 `NUS, NTU, A*STAR, AI Singapore`
-🌍 `CERN, ESA, KAUST, Technion, KAIST, RIKEN AIP, CSIRO`
-
-Every run = fresh results. Zero maintenance.
-
----
-
-## ⚙️ How the Filtering Works (The Smart Part)
-
-### 🔑 AI/ML Keyword Gate
-Every listing must contain at least one of **50+ AI/ML terms** to even get in the door:
-`machine learning` / `deep learning` / `computer vision` / `LLM` / `generative AI` / `NLP` / `transformers` / `reinforcement learning` / `AI research` and more.
-
-And if the title says `senior`, `5+ years`, `manager`, `PhD required`, or `full-time` — **auto-rejected.** You're looking for internships, not a job for someone with a decade of experience.
-
-### 📅 Past Year Defense
-Aggregator sites often surface old 2024/2025 listings in their search results. The filter dynamically reads `datetime.now()`, computes the current target year, and then **physically scans the raw listing text** for any stale year string. If it finds `2024` or `2025` hiding in there — the card is shredded before it ever hits your screen.
-
-### 🗓️ Summer Date NLP
-- Listings must start **on or after May 20** of the upcoming summer
-- But terms like `"immediately"`, `"rolling"`, `"ASAP"`, or `"flexible"` are always allowed — because a good opportunity isn't date-dependent
-- Powered by `dateparser`, a real NLP date extraction library
-
-### 💰 Stipend Check
-- **India**: Minimum ₹5,000/month (or unspecified = OK)
-- **International**: Any compensation is fine
-- Explicit `"Unpaid"` or `0` always filtered out
-
-### 🛡️ Genuine-Only Check (`genuine.py`)
-A listing is **removed** only for things a real internship never does:
-- it asks the candidate to pay (registration / training / security fee, deposit, "pay ₹999 to book your slot")
-- it is a task-for-money scheme (like / review / prepaid tasks)
-- it is a mass programme, not a selective internship (for example 4 lakh people "hired" from 1,800 posts)
-
-Softer warnings are **kept** and written to the `trust_flags` column: very short duration, a brand-new employer with no hires yet, an employer that posts a lot but hires few, or no stated stipend. Big real companies can look odd on one number, so these never delete a listing on their own.
-
-### 🔎 Scam Moderation Pipeline (n8n)
-After every scrape, an n8n workflow checks each new listing in three stages: rules on the apply link and contact details, a vector search of every sentence against known scam phrases (and honest ones, so "no fee" doesn't match "pay the fee"), and one LLM call that must quote the post. Quotes are checked against the real text and the scores are combined, so the LLM alone can never block a post. Verdicts appear on each card. Setup and design: [N8N_SETUP.md](N8N_SETUP.md).
-
-### 🧪 Test One Platform
-```bash
-python scraper.py --source internshala --dry-run
+    subgraph Presentation ["5. Presentation & Security Perimeter"]
+        D --> F[Flask + Waitress Production Engine]
+        F --> G[app.py Security Guard: Local / Token vs Read-Only Tunnel]
+        G --> H[Interactive 3D WebGL Dashboard]
+    end
 ```
-Nothing is saved to `internships.csv`. It prints how many listings were kept or dropped and why, and writes every listing with its reason to `test_output/internshala.csv`. Offline parser tests (saved copies of the live pages): `python -m pytest tests -q`.
-
-### 🔧 Selector Upgrade Status
-| Platform | Checked on live site | Status |
-|---|---|---|
-| Internshala | 12 Oct 2026 | Selectors updated (title is now `h2 a.job-title-href`, location `.row-1-item.locations`, duration by calendar icon, last page by `#isLastPage`); detail page adds employer activity |
-| Unstop, Naukri, LinkedIn, Shine, Foundit, Apna, Govt (AICTE) | 12 Oct 2026 | Upgraded; see [SELECTOR_TRACKER.md](SELECTOR_TRACKER.md) for each site's test results |
-| Cutshort, RSS, WWR | — | Not re-checked yet |
 
 ---
 
-## �️ How to Set It Up (Actually Simple)
+## 📦 Project Structure
 
-**You need:** Python 3.9+ and Google Chrome. That's it.
+```text
+InReal_v1/
+├── app.py                   # Flask application, REST APIs, and perimeter access control
+├── fields.py                # Multi-disciplinary career ontology definitions
+├── filters.py               # Eligibility, keyword, stipend, and date parsing
+├── genuine.py               # Rule-based scam detection and employer anomaly checks
+├── output_handler.py        # Concurrency-safe CSV/JSON sync and round-robin queue
+├── scraper.py               # Multi-source scraper orchestrator and copy-collapsing engine
+├── scraper_utils.py         # Anti-bot stealth utilities, delays, and alert dispatch
+├── scheduler.py             # Scheduled scraping background process
+├── test_sites.py            # Diagnostic utility for dry-running portal scrapers
+├── SELECTOR_TRACKER.md      # Detailed selector upgrade history across all platforms
+├── THIRD_PARTY_NOTICES.md   # Third-party licensing, dependencies, and upstream attribution
+├── LICENSE                  # MIT License with upstream attribution
+│
+├── moderation/              # Verification & Moderation Services
+│   ├── build_index.py       # Embedding index generator & calibration script
+│   ├── check_azure.py       # Azure OpenAI endpoint diagnostics
+│   ├── env.py               # Environment loader
+│   ├── link_check.py        # HTTP redirect resolution & expired listing detector
+│   ├── notify.py            # n8n webhook notification dispatcher
+│   ├── recheck.py           # Listing re-check and validation utility
+│   └── scam_patterns.json   # Seed bank of known deceptive patterns & honest anchors
+│
+├── n8n/                     # Workflow Automation & Evidence Fusion
+│   ├── build_workflow.py    # n8n workflow synthesizer
+│   ├── inreal_moderation.json # Full n8n visual moderation workflow
+│   └── code/                # Node.js pipeline components
+│       ├── signals.js       # Stage 0: Link and contact signal extraction
+│       ├── vector_search.js # Stage 1: Calibrated vector semantic search
+│       ├── judge_prompt.js  # Stage 2: Generative judge prompt with evidence requirements
+│       ├── fuse.js          # Stage 2b: Verbatim quote verification & multi-modal fusion
+│       └── ...
+│
+├── sites/                   # Portal Scraper Implementations
+│   ├── internshala.py       # Internshala Playwright scraper
+│   ├── unstop.py            # Unstop internal JSON API scraper
+│   ├── naukri.py            # Naukri visible browser + schema.org JSON-LD extractor
+│   ├── linkedin.py          # LinkedIn guest job search & detail API scraper
+│   ├── shine.py             # Shine server-rendered article & schema.org parser
+│   ├── foundit.py           # Foundit JSON endpoint scraper
+│   ├── apna.py              # Apna search & schema.org extractor
+│   ├── government.py        # AICTE National Internship Portal API ingestion
+│   ├── universities.py      # DuckDuckGo dynamic lab & research fellowship discovery
+│   └── ...
+│
+├── static/                  # Static Assets & Client-Side Scripts
+│   ├── app_radar.js         # Reactive dashboard controller, real-time filters & SSE
+│   └── ...                  # SVG graphics and team illustrations
+├── templates/
+│   └── index.html           # Modern glassmorphism dashboard with 3D WebGL canvas
+└── tests/                   # Automated Test Suite (pytest)
+    ├── test_moderation.py   # Full moderation pipeline and fusion test
+    ├── test_save.py         # Concurrency and data synchronization tests
+    ├── test_fields.py       # Multi-disciplinary ontology tests
+    ├── test_public_guard.py # Perimeter security and tunnel access guard tests
+    └── ...                  # Platform-specific scraper and parser tests
+```
 
-```bash
-# 1. Clone the project
-git clone https://github.com/abhishekgoswami0720/InReal.git
-cd InReal
+---
 
-# 2. Create virtual environment
+## 🛠️ Quick Start & Installation
+
+### 1. Prerequisites
+- Python 3.9+ (Python 3.11+ recommended)
+- Node.js (for n8n moderation pipeline tests)
+- Google Chrome or Chromium (installed via Playwright)
+
+### 2. Environment Setup
+```powershell
+# Clone the repository
+cd InReal_v1
+
+# Create and activate virtual environment
 python -m venv venv
-venv\Scripts\activate      # Windows
-source venv/bin/activate   # Mac/Linux
+.\venv\Scripts\activate
 
-# 3. Install everything
+# Install required dependencies
 pip install -r requirements.txt
-python -m playwright install chromium
 
-# 4. Run it
+# Install Playwright browser binaries
+playwright install chromium
+```
+
+### 3. Configuration
+Copy `.env.example` to `.env` and supply your API credentials:
+```env
+# Azure OpenAI (or Gemini) for embeddings and LLM judge
+AZURE_OPENAI_EMBEDDING_ENDPOINT=https://YOUR-EMBED-RESOURCE.openai.azure.com/
+AZURE_OPENAI_EMBEDDING_KEY=your-key
+AZURE_OPENAI_GPT4O_ENDPOINT=https://YOUR-GPT4O-RESOURCE.openai.azure.com/
+AZURE_OPENAI_GPT4O_KEY=your-key
+
+# Alternatively, set Gemini API key:
+GEMINI_API_KEY=your-gemini-key
+EMBED_PROVIDER=gemini
+
+# n8n webhook URL
+INREAL_N8N_WEBHOOK=http://localhost:5678/webhook/inreal-moderate
+
+# Optional token for remote administrative writes:
+INREAL_ADMIN_TOKEN=your-secure-token
+```
+
+### 4. Build Pattern Embeddings
+Generate the vector index for semantic moderation:
+```powershell
+python -m moderation.build_index
+```
+
+### 5. Running the Application
+```powershell
+# Start InReal dashboard with Waitress production server (debug off)
 python app.py
 ```
+Open `http://localhost:5000` in your browser.
 
-Open **http://localhost:5000** → click **"Run Scraper Now"** → go make tea ☕
-
----
-
-## 🎮 Using the Dashboard
-
-**Buttons in the top-right corner:**
-
-| Button | What it does |
-|--------|-------------|
-| 🔄 Refresh | Reload the current data from CSV |
-| 🗑️ Trash (red) | Wipe the entire database and start fresh |
-| ℹ️ Info | Open the usage guide modal |
-
-**Sidebar filters** let you drill down by:
-- 🌍 Location (India / Remote / Global)
-- 💵 Stipend bracket (Any / Paid / >₹10K / >₹20K / >₹50K)
-- 🏛️ Org type (Company / Institution / Government)
-- 🔬 Role type (Research Core / Applied Engineering)
-- 📡 Source platform (per-source dropdown)
-
-**Match Score legend:**
-- 🟢 **≥80** — Dream listing. Apply immediately.
-- 🟡 **60–79** — Good match. Worth a look.
-- 🔴 **<60** — Peripheral. Only if you're desperate.
-
----
-
-## 🥷 Anti-Bot Tactics
-
-The scraper doesn't act like a robot (ironically). It uses:
-
-- **Playwright Stealth Plugin** — patches browser fingerprints, defeats bot detection
-- **Random human delays** — 1.5–4.5 second waits between clicks
-- **Rotating User-Agents** — realistic Chrome UA strings on Windows/Mac
-- **Random scrolling** — simulates actually reading the page
-- **Visible browser for protected sites** — you intervene when needed
-- **Exponential backoff retries** — fails gracefully on network blips
-
----
-
-## 🗂️ Project Structure (If You Want to Poke Around)
-
-```
-internship_scraper/
-├── app.py                 ← Flask server + all API endpoints
-├── scraper.py             ← Orchestrator: runs all scrapers in sequence
-├── filters.py             ← The brain: NLP keyword + date + stipend filters
-├── output_handler.py      ← Deduplication engine + CSV writer
-├── scraper_utils.py       ← Shared tools: delays, headers, stealth args
-│
-├── sites/
-│   ├── internshala.py     ← Playwright stealth scraper
-│   ├── unstop.py          ← Playwright + closed-card detection
-│   ├── naukri.py          ← CAPTCHA-aware visible browser
-│   ├── linkedin.py        ← 100+ config LinkedIn public jobs scraper
-│   ├── rss_feeds.py       ← Remotive + WeWorkRemotely RSS
-│   ├── government.py      ← DRDO, ISRO, govt portals
-│   ├── misc_india.py      ← Shine, Foundit, Apna, CutShort
-│   ├── international.py   ← WeWorkRemotely Playwright
-│   ├── bigtech.py         ← FAANG career pages
-│   ├── niche.py           ← AI-specific job boards
-│   ├── search_engine.py   ← 8 DuckDuckGo dork queries (geo-filtered)
-│   └── universities.py    ← 54 DDG searches, global university discovery
-│
-├── templates/index.html   ← The dashboard
-├── static/style.css       ← Bloomberg dark aesthetic, glassmorphism
-├── static/script.js       ← Live filtering, polling, XSS-safe card rendering
-│
-├── internships.csv        ← The database (gitignored)
-├── internships_log.json   ← Scraper memory for deduplication (gitignored)
-├── scraper_run.log        ← What the scraper did (gitignored)
-└── scraper_errors.log     ← What went wrong (gitignored)
-```
-
----
-
-## � Trouble? Read This First.
-
-**"No listings showing for Naukri / Unstop"**
-→ A CAPTCHA appeared and the timer ran out. Just run the scraper again and solve it when the browser pops up. You have **45 seconds**.
-
-**"LinkedIn is showing 0 results"**
-→ LinkedIn probably showed a sign-in popup. Close it manually when the visible browser opens.
-
-**"DuckDuckGo returned nothing"**
-→ DDG rate-limits aggressive requests. Wait 5 minutes and try again. Or increase the delay in `scraper_utils.py` → `human_delay()`.
-
-**"Port 5000 is already in use"**
-→ Change the last line in `app.py` to `app.run(debug=True, port=5001)`.
-
-**"Clear button did nothing"**
-→ The scraper was probably still running. Wait for it to finish first, then clear.
-
----
-
-## 📊 Output Format
-
-Every discovered internship is saved to `internships.csv` with:
-
-| Field | Description |
-|-------|-------------|
-| `id` | MD5 hash for deduplication |
-| `role_title` | Job title |
-| `company_name` | Company or institution |
-| `location` | City / Country |
-| `location_type` | `India` / `International` / `Remote` |
-| `stipend` | Raw text (e.g., "₹15,000/month") |
-| `stipend_numeric` | Parsed number |
-| `apply_link` | Direct URL |
-| `source_platform` | Which scraper found it |
-| `date_scraped` | When it was discovered |
-| `org_type` | `Company` / `Institution` / `Government` |
-| `role_type` | `Research` / `Applied` |
-| `match_score` | 0–100 relevance score |
-
----
-
-## ⏰ Running on a Schedule
-
-**Windows (Task Scheduler):**
+To expose a secure, read-only public demo link via Cloudflare Tunnel:
 ```powershell
-schtasks /create /tn "AI Radar" /tr "python C:\path\to\internship_scraper\scraper.py" /sc DAILY /st 08:00
+.\run_public.bat
 ```
 
-**Mac/Linux (Cron):**
-```bash
-0 8 * * * cd /path/to/internship_scraper && python scraper.py >> cron.log 2>&1
+### 6. Executing Tests
+Run the comprehensive offline test suite:
+```powershell
+.\venv\Scripts\pytest
 ```
 
 ---
 
-## 📜 License
+## 📋 Scraping Operations & Dry Runs
 
-MIT — do whatever you want with it.
+Run a specific platform in dry-run mode (outputs detailed kept/dropped analytics to `test_output/<platform>.csv` without touching the main database):
+```powershell
+python scraper.py --source internshala --dry-run
+```
+
+Test all platforms sequentially:
+```powershell
+python test_sites.py
+```
+
+Test opportunities for a specific discipline:
+```powershell
+python test_sites.py --field medical
+```
 
 ---
 
-## ⚠️ Disclaimer
+## 📜 Intellectual Property & Upstream Attribution
 
-This was built for personal use to find internships. Please don't hammer servers at high frequency or use this commercially. The rate limiting is there for a reason — be a decent human to the websites you're scraping.
+InReal builds upon and substantially refactors foundational web scraping routines from the open-source MIT-licensed project:
+* **Upstream Project:** [Internship_Scraper](https://github.com/Srikant-03/Internship_Scraper) by Srikant-03.
+* **License:** MIT License.
 
-## Share a public link (demo)
+All newly developed features—including the multi-stage fraud moderation pipeline, contrastive semantic pattern calibration, verbatim evidence-verified LLM fusion, copy collapsing, cross-post contamination propagation, multi-disciplinary ontologies, and secure concurrency architectures—are original contributions of the InReal engineering team.
 
-On the laptop, double-click **`run_public.bat`** (needs `winget install --id Cloudflare.cloudflared` once).
-It starts the app with the `waitress` server (debug off) and prints a `https://….trycloudflare.com` link.
-
-- Anyone with the link sees the dashboard **read-only**: no scrape button, and every write endpoint
-  (`/api/scrape`, `/api/clear`, `/api/moderation/*`) returns 403 for them.
-- Scraping and n8n still work from the laptop itself (`http://127.0.0.1:5000`), unchanged.
-- The link changes every time the tunnel restarts, and stops when the laptop sleeps.
-- Optional: set `INREAL_ADMIN_TOKEN` in `.env` to allow writes from elsewhere with the `X-InReal-Token` header.
-- `set INREAL_DEBUG=1` brings back Flask's debug server, for local development only, never with a tunnel.
-
-## Fields, experience and the sign-up profile (13 Oct)
-
-- First visit asks for a profile (saved in the browser, no password): field, work experience (0 / 1–2 / 3+ years),
-  preferred companies, and which sites and regions to search, each group with a "Select all" box.
-- A scrape run is for one field (`fields.py`: AI/ML, Software, Data Analytics, Medicine & Healthcare, Pharma & Biotech,
-  Mechanical/Electrical/Civil, Finance, Marketing, Design, Content, HR & Operations, Law). Every site searches that
-  field's words, and the title check accepts that field. AI/ML keeps its original rules.
-- Each saved row records its field; the dashboard shows a student only their field.
-- Unpaid internships are now saved (stipend "Unpaid") and shown only to students with 0 years of experience.
-- Test another field without saving: `python test_sites.py --field medical`
+Detailed provenance, third-party dependency licenses, and intellectual property reviews are documented in:
+* [LICENSE](LICENSE)
+* [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
+* [docs/ip-review/](docs/ip-review/)
