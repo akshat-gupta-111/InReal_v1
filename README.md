@@ -1,10 +1,14 @@
-# InReal
+<div align="center">
+
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/banner-dark.svg"><source media="(prefers-color-scheme: light)" srcset="docs/readme/banner-light.svg"><img alt="InReal: internships you can trust. Posts from many sites are checked and the scams are hidden." src="docs/readme/banner-light.svg" width="100%"></picture></p>
 
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://python.org)
 [![Flask](https://img.shields.io/badge/flask-3.x-green.svg)](https://flask.palletsprojects.com)
 [![TinyFish](https://img.shields.io/badge/web%20agents-TinyFish-orange.svg)](https://www.tinyfish.ai/)
 [![n8n](https://img.shields.io/badge/moderation-n8n-ea4b71.svg)](https://n8n.io)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+</div>
 
 **Internships you can trust.** InReal collects internships from the big Indian and international portals into one list, and checks every post for scams before a student sees it.
 
@@ -17,6 +21,10 @@ Built by **Team Chiranjivi**. First shown at the CodeX 3.0 grand finale, PIET Pa
 Fake internships look just like real ones. A student gets a proper offer, sits an interview, and is then asked to pay a "registration", "training" or "verification" fee. The catch is never in the title. It sits deep in the description, or arrives on WhatsApp after you apply.
 
 When we ran our scraper on six portals on 12 October 2026, we read **2,176** AI/ML internship posts. Only **451** passed our checks. The rest were off-topic, already closed, unpaid, or asked the student for money.
+
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/funnel-dark.svg"><source media="(prefers-color-scheme: light)" srcset="docs/readme/funnel-light.svg"><img alt="451 of 2,176 posts passed on 12 Oct 2026: LinkedIn 305 of 859, Unstop 15 of 589, Internshala 81 of 393, AICTE 17 of 165, Naukri 21 of 121, Apna 12 of 49" src="docs/readme/funnel-light.svg" width="100%"></picture></p>
+
+<sub>Per-portal counts from the laptop test runs logged in [SELECTOR_TRACKER.md](SELECTOR_TRACKER.md).</sub>
 
 ## What InReal does
 
@@ -34,6 +42,8 @@ When we ran our scraper on six portals on 12 October 2026, we read **2,176** AI/
 Our first version reads each portal by its exact page layout (CSS selectors in `sites/*.py`). Portals change their pages often, and when they do, the reader comes back empty. On 12 October 2026 we had to rewrite the readers for seven portals. Naukri hides later pages behind a captcha token, and company career pages we could only link to, never read.
 
 TinyFish fixes that. Instead of writing layout code for every site, we give a TinyFish agent a page and a goal in plain English, and it returns clean JSON.
+
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/tinyfish-dark.svg"><source media="(prefers-color-scheme: light)" srcset="docs/readme/tinyfish-light.svg"><img alt="Today: one layout script per portal that breaks on redesigns. With TinyFish: one plain-English goal per portal." src="docs/readme/tinyfish-light.svg" width="100%"></picture></p>
 
 | Job | TinyFish API | What it replaces today | Status |
 |---|---|---|---|
@@ -99,6 +109,8 @@ flowchart TD
 - **Stage 1** compares every sentence of the post with about 50 known scam phrases and about 15 honest ones, so "we do **not** charge any fee" doesn't match "pay the registration fee". A near-copy of a high-risk scam is blocked here without any AI call.
 - **Stage 2** makes one AI call per post. The reviewer has to quote the exact line it objects to. Quotes that aren't really in the post are thrown away, and a high score with no surviving quote is pulled back to about 0.5.
 - The final risk is `0.6 × AI reviewer + 0.25 × phrase match + 0.15 × rules`, so the AI alone can push a post to **Needs a look**, never to **Hidden**. If the AI and the phrase match disagree by 0.6 or more, a person decides.
+
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/formula-dark.svg"><source media="(prefers-color-scheme: light)" srcset="docs/readme/formula-light.svg"><img alt="Final risk = 60% AI reviewer + 25% phrase match + 15% link and contact rules. The AI alone tops out below the 0.7 needed to hide a post." src="docs/readme/formula-light.svg" width="100%"></picture></p>
 
 The whole workflow is in `n8n/inreal_moderation.json`. Import it into n8n (Create workflow → Import from file) and add your Gemini key as a credential.
 
